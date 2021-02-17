@@ -9,3 +9,8 @@ type File struct {
     ModDate time.Time `json:"modDate"`
     IsDir bool `json:"isDir"`
 }
+
+type Repo struct {
+    Path string `json:"path"`
+    Files []File `json:"files"`
+}

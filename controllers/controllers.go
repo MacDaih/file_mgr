@@ -26,13 +26,16 @@ func RetrieveFiles(w http.ResponseWriter, r *http.Request) {
     } else {
 		path = fmt.Sprintf("%s%s",PATH,keys[0])
 	}
-    files, err := ioutil.ReadDir(path)
 
+    files, err := ioutil.ReadDir(path)
+    
     if err != nil {
-        log.Println(err)
+        http.Error(w,fmt.Sprintf("%v",err),http.StatusInternalServerError)
+        return
     }
 
     var res []m.File
+
     for _,f := range files {
         id,name := u.GetFileID(f.Name())
         if len(*name) == 0 {
@@ -47,7 +50,12 @@ func RetrieveFiles(w http.ResponseWriter, r *http.Request) {
         }        
         res = append(res,file)
     }
-    json.NewEncoder(w).Encode(res)
+
+    repo := m.Repo{
+        path,
+        res,
+    }
+    json.NewEncoder(w).Encode(repo)
 } 
 
 func UploadFile(w http.ResponseWriter, r *http.Request) {
@@ -104,9 +112,10 @@ func DeleteFiles(w http.ResponseWriter, r *http.Request) {
     }
     for _, f := range d {
         rebuild := fmt.Sprintf("%s%s_%s",PATH,f.Id,f.Name)
-        err := os.Remove(rebuild)
+        err := os.RemoveAll(rebuild)
         if err != nil {
-            log.Println(err)
+            http.Error(w,"Failed",http.StatusInternalServerError)
+            return
         }
     }
 }
