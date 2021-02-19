@@ -186,3 +186,7 @@ func Rename(w http.ResponseWriter, r *http.Request) {
         return
 	}
 }
+
+func ServeImage(w http.ResponseWriter, r *http.Request) {
+    
+}

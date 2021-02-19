@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"os"
 	"fmt"
 	"strings"
 	"net/http"
-	
+
 	"github.com/gofrs/uuid"
 )
 
@@ -31,7 +32,6 @@ func GetFileID(full string) (*string, *string) {
 			}
 		}
 	}
-	fmt.Printf("%s \n",parsed)
 	return &splt[0],&parsed
 } 
 
@@ -42,4 +42,20 @@ func NewFileId() (string, error) {
 	}
 	value := fmt.Sprintf("%v", newId)
 	return value, nil
+}
+
+func GetFileType(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	buffer := make([]byte,512)
+	_, err = file.Read(buffer)
+
+	if err != nil {
+		return err
+	}
+	filetype := http.DetectContentType(buffer)
+	fmt.Println("File type or MIME  : ", filetype)
+	return nil
 }
