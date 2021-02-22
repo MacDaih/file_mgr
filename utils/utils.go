@@ -44,18 +44,21 @@ func NewFileId() (string, error) {
 	return value, nil
 }
 
-func GetFileType(path string) error {
+func DeepDown(path string) {
+	splt := strings.Split(path, "/")
+	fmt.Println(len(splt))
+}
+
+func GetFileType(path string) (*string,error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return err
+		return nil,err
 	}
 	buffer := make([]byte,512)
 	_, err = file.Read(buffer)
-
 	if err != nil {
-		return err
+		return nil,err
 	}
 	filetype := http.DetectContentType(buffer)
-	fmt.Println("File type or MIME  : ", filetype)
-	return nil
+	return &filetype,nil
 }

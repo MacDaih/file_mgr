@@ -7,20 +7,20 @@ import (
 	"fmt"
     "io/ioutil"
     "net/http"
+    "path/filepath"
     "encoding/json"
 
 	u "../utils"
 	m "../models"
+    l "../logs"
 )
 
 const PATH = "./tmp-rep/"
 
 func RetrieveFiles(w http.ResponseWriter, r *http.Request) {
     u.SetCors(&w, "GET")
-
 	var path string
 	keys, ok := r.URL.Query()["sub"]
-    
     if !ok || len(keys[0]) < 1 {
         path = PATH
     } else {
@@ -30,6 +30,7 @@ func RetrieveFiles(w http.ResponseWriter, r *http.Request) {
     files, err := ioutil.ReadDir(path)
     
     if err != nil {
+        l.WriteLog("RetrieveFiles",nil, err)
         http.Error(w,fmt.Sprintf("%v",err),http.StatusInternalServerError)
         return
     }
@@ -80,14 +81,17 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	defer dst.Close()
 
     if err != nil {
-        http.Error(w,fmt.Sprintf("%v",err),http.StatusInternalServerError)
+        l.WriteLog("UploadFile",nil, err)
+        http.Error(w,"Failed",http.StatusInternalServerError)
         return
 	}
 
 	if _, err := io.Copy(dst, file); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+        l.WriteLog("UploadFile",nil, err)
+		http.Error(w, "Failed", http.StatusInternalServerError)
 		return
 	}
+    fullPath
     w.WriteHeader(http.StatusOK)
 }
 
@@ -98,7 +102,7 @@ func DeleteFiles(w http.ResponseWriter, r *http.Request) {
     b, err := ioutil.ReadAll(r.Body)
 
     if err != nil {
-        log.Println(err)
+        l.WriteLog("UploadFile",nil, err)
         http.Error(w,"Failed",http.StatusInternalServerError)
         return
     }
@@ -106,7 +110,7 @@ func DeleteFiles(w http.ResponseWriter, r *http.Request) {
     err = json.Unmarshal(b, &d)
     
     if err != nil {
-        log.Println(err)
+        l.WriteLog("DeleteFiles",nil, err)
         http.Error(w,"Failed",http.StatusInternalServerError)
         return
     }
@@ -114,6 +118,7 @@ func DeleteFiles(w http.ResponseWriter, r *http.Request) {
         rebuild := fmt.Sprintf("%s%s_%s",PATH,f.Id,f.Name)
         err := os.RemoveAll(rebuild)
         if err != nil {
+            l.WriteLog("DeleteFiles",nil, err)
             http.Error(w,"Failed",http.StatusInternalServerError)
             return
         }
@@ -137,12 +142,13 @@ func NewFolder(w http.ResponseWriter, r *http.Request) {
 
     err = json.Unmarshal(body, &data)
     if err != nil {
-        log.Println(err)
+        l.WriteLog("NewFolder",nil, err)
         http.Error(w,"Failed",http.StatusInternalServerError)
         return
     }
 	id, err := u.NewFileId()
 	if err != nil {
+        l.WriteLog("NewFolder",nil, err)
 		http.Error(w,"Failed",http.StatusInternalServerError)
         return
 	}
@@ -150,9 +156,11 @@ func NewFolder(w http.ResponseWriter, r *http.Request) {
     full := fmt.Sprintf("%s%s", PATH, fullName)
     err = os.Mkdir(full, 0755)
     if err != nil {
+        l.WriteLog("NewFolder",nil, err)
         http.Error(w,"Failed",http.StatusInternalServerError)
         return
     }
+    l.WriteLog("NewFolder",&full, nil)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -161,11 +169,10 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 
     if err != nil {
-        log.Println(err)
+        l.WriteLog("Rename",nil, err)
         http.Error(w,"Failed",http.StatusInternalServerError)
         return 
     }
-
     data := struct{
 		PrevName string `json:"prev_name"`
         NewName string `json:"new_name"`
@@ -173,7 +180,7 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 
     err = json.Unmarshal(body, &data)
     if err != nil {
-        log.Println(err)
+        l.WriteLog("Rename",nil, err)
         http.Error(w,"Failed",http.StatusInternalServerError)
         return
     }
@@ -181,12 +188,30 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 	dst := fmt.Sprintf("%s%s",PATH, data.NewName)
     err = os.Rename(src, dst)
 	if err != nil {
-		log.Println(err)
+        l.WriteLog("Rename",nil, err)
         http.Error(w,"Failed",http.StatusInternalServerError)
         return
 	}
 }
-
+// WIP !!!
 func ServeImage(w http.ResponseWriter, r *http.Request) {
-    
+    u.SetCors(&w, "GET")
+    id, ok := r.URL.Query()["id"]
+    if !ok {
+        http.Error(w,"Failed",http.StatusBadRequest)
+    }
+    err := filepath.Walk(PATH,
+        func(path string, info os.FileInfo, err error) error {
+            if err != nil {
+                l.WriteLog("ServeImage",nil, err)
+                return err
+            }
+            fmt.Println(path, info.Size())
+            u.DeepDown(path)
+            return nil
+        })
+    if err != nil {
+        l.WriteLog("ServeImage",nil, err)
+    }
+    w.WriteHeader(http.StatusOK)
 }

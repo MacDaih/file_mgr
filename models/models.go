@@ -2,6 +2,11 @@ package models
 
 import "time"
 
+const (
+    jpg = "jpg"
+    png = "png"
+)
+
 type File struct {
     Id string `json:"id"`
     Name string `json:"name"`
