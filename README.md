@@ -1,1 +1,2 @@
-# File manager
+# file_mgr
+A file management service
