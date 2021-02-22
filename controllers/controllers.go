@@ -91,7 +91,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed", http.StatusInternalServerError)
 		return
 	}
-    fullPath
+    l.WriteLog("UploadFile",&fullPath, nil)
     w.WriteHeader(http.StatusOK)
 }
 
@@ -196,7 +196,7 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 // WIP !!!
 func ServeImage(w http.ResponseWriter, r *http.Request) {
     u.SetCors(&w, "GET")
-    id, ok := r.URL.Query()["id"]
+    _, ok := r.URL.Query()["id"]
     if !ok {
         http.Error(w,"Failed",http.StatusBadRequest)
     }

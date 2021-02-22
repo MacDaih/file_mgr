@@ -3,12 +3,12 @@ package main
 import (
     "log"
     "net/http"
-    
+
     c "./controllers"
 )
 
 const (
-    PORT = ":8080"
+    PORT = ":8000"
 )
 
 func main () {
