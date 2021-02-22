@@ -10,9 +10,9 @@ import (
     "path/filepath"
     "encoding/json"
 
-	u "../utils"
-	m "../models"
-    l "../logs"
+	u "github.com/macdaih/file_mgr/utils"
+	m "github.com/macdaih/file_mgr/models"
+    l "github.com/macdaih/file_mgr/logs"
 )
 
 const PATH = "./tmp-rep/"

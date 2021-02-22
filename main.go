@@ -4,7 +4,7 @@ import (
     "log"
     "net/http"
 
-    c "./controllers"
+    c "github.com/macdaih/file_mgr/controllers"
 )
 
 const (

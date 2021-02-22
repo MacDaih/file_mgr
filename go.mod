@@ -1,4 +1,4 @@
-module main
+module github.com/macdaih/file_mgr
 
 go 1.14
 
